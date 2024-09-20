@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5段階リッカート形式アンケート</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        .survey-container {
+            display: inline-block;
+        }
+        .emoji {
+            font-size: 50px;
+            cursor: pointer;
+            padding: 10px;
+            transition: transform 0.2s;
+        }
+        .emoji:hover {
+            transform: scale(1.2);
+        }
+        .selected {
+            border: 2px solid #4CAF50;
+            border-radius: 50%;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+        #thank-you {
+            display: none;
+            margin-top: 20px;
+            font-size: 30px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>アンケートにお答えください</h1>
+    <div class="survey-container">
+        <span class="emoji" data-value="1">😡</span>
+        <span class="emoji" data-value="2">😟</span>
+        <span class="emoji" data-value="3">😐</span>
+        <span class="emoji" data-value="4">😊</span>
+        <span class="emoji" data-value="5">😁</span>
+    </div>
+    <div id="result">選択した評価: なし</div>
+    <div id="thank-you">Thank you!</div>
+
+    <script>
+        const emojis = document.querySelectorAll('.emoji');
+        const result = document.getElementById('result');
+        const thankYouMessage = document.getElementById('thank-you');
+        let selectedValue = null;
+        let counter = 0;  // 連番用のカウンター
+
+        emojis.forEach(emoji => {
+            emoji.addEventListener('click', () => {
+                // 以前の選択をクリア
+                emojis.forEach(e => e.classList.remove('selected'));
+
+                // 新しい選択をハイライト
+                emoji.classList.add('selected');
+                selectedValue = emoji.getAttribute('data-value');
+
+                // 結果を表示
+                result.textContent = `選択した評価: ${selectedValue}`;
+
+                // 「Thank you!」メッセージを表示し、一定時間後に初期化
+                thankYouMessage.style.display = 'block';
+                setTimeout(() => {
+                    thankYouMessage.style.display = 'none';
+                    resetSurvey();
+                }, 2000);
+
+                // 連番付きのテキストファイルを自動的にダウンロード
+                createAndDownloadFile(selectedValue);
+            });
+        });
+
+        function resetSurvey() {
+            // 選択をクリア
+            emojis.forEach(e => e.classList.remove('selected'));
+            result.textContent = '選択した評価: なし';
+            selectedValue = null;
+        }
+
+        function createAndDownloadFile(value) {
+            // 連番を生成 (6桁)
+            counter++;
+            const serialNumber = String(counter).padStart(6, '0');  // 6桁に0埋め
+
+            // テキストデータを生成
+            const textData = `${value}`;
+            const blob = new Blob([textData], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+
+            // ファイル名に6桁の連番を付加
+            const fileName = `result_${serialNumber}.txt`;
+
+            // 自動的にダウンロードをトリガーするリンクを作成
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+
+            // リンクをクリックして自動的にダウンロード
+            a.click();
+
+            // リソースの解放
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
